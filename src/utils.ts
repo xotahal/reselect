@@ -110,7 +110,7 @@ export function getDependencies(createSelectorArgs: unknown[]) {
  * @param inputSelectorArgs - An array of arguments being passed to the input selectors.
  * @returns An array of input selector results.
  */
-export function collectInputSelectorResults(
+export async function collectInputSelectorResults(
   dependencies: SelectorArray,
   inputSelectorArgs: unknown[] | IArguments
 ) {
@@ -119,9 +119,10 @@ export function collectInputSelectorResults(
   for (let i = 0; i < length; i++) {
     // @ts-ignore
     // apply arguments instead of spreading and mutate a local list of params for performance.
-    inputSelectorResults.push(dependencies[i].apply(null, inputSelectorArgs))
+    const inputResult = dependencies[i].apply(null, inputSelectorArgs)
+    inputSelectorResults.push(inputResult)
   }
-  return inputSelectorResults
+  return Promise.all(inputSelectorResults)
 }
 
 /**

@@ -194,6 +194,7 @@ export function lruMemoize<Func extends AnyFunction>(
       ? equalityCheckOrOptions
       : { equalityCheck: equalityCheckOrOptions }
 
+
   const {
     equalityCheck = referenceEqualityCheck,
     maxSize = 1,
@@ -209,12 +210,12 @@ export function lruMemoize<Func extends AnyFunction>(
       ? createSingletonCache(comparator)
       : createLruCache(maxSize, comparator)
 
-  function memoized() {
+  async function memoized() {
     let value = cache.get(arguments) as ReturnType<Func>
     if (value === NOT_FOUND) {
       // apply arguments instead of spreading for performance.
       // @ts-ignore
-      value = func.apply(null, arguments) as ReturnType<Func>
+      value = await func.apply(null, arguments) as ReturnType<Func>
       resultsCount++
 
       if (resultEqualityCheck) {

@@ -308,7 +308,7 @@ export function createSelectorCreator<
       }
     : memoizeOrOptions
 
-  const createSelector = <
+  function createSelector<
     InputSelectors extends SelectorArray,
     Result,
     OverrideMemoizeFunction extends UnknownMemoizer = MemoizeFunction,
@@ -324,7 +324,7 @@ export function createSelectorCreator<
         OverrideArgsMemoizeFunction
       >
     ]
-  ) => {
+  )  {
     let recomputations = 0
     let dependencyRecomputations = 0
     let lastResult: Result
@@ -385,31 +385,28 @@ export function createSelectorCreator<
     const finalArgsMemoizeOptions = ensureIsArray(argsMemoizeOptions)
     const dependencies = getDependencies(createSelectorArgs) as InputSelectors
 
-    const memoizedResultFunc = memoize(function recomputationWrapper() {
+    const memoizedResultFunc = memoize(async function recomputationWrapper() {
       recomputations++
       // apply arguments instead of spreading for performance.
       // @ts-ignore
-      return (resultFunc as Combiner<InputSelectors, Result>).apply(
-        null,
-        arguments
-      )
+      return await (resultFunc as Combiner<InputSelectors, Result>).apply( null, arguments )
     }, ...finalMemoizeOptions) as Combiner<InputSelectors, Result> &
       ExtractMemoizerFields<OverrideMemoizeFunction>
 
     let firstRun = true
 
     // If a selector is called with the exact same arguments we don't need to traverse our dependencies again.
-    const selector = argsMemoize(function dependenciesChecker() {
+    const selector = argsMemoize(async function dependenciesChecker() {
       dependencyRecomputations++
       /** Return values of input selectors which the `resultFunc` takes as arguments. */
-      const inputSelectorResults = collectInputSelectorResults(
+      const inputSelectorResults = await collectInputSelectorResults(
         dependencies,
         arguments
       )
 
       // apply arguments instead of spreading for performance.
       // @ts-ignore
-      lastResult = memoizedResultFunc.apply(null, inputSelectorResults)
+      lastResult = await memoizedResultFunc.apply(null, inputSelectorResults)
 
       if (process.env.NODE_ENV !== 'production') {
         const { identityFunctionCheck, inputStabilityCheck } =
@@ -424,7 +421,7 @@ export function createSelectorCreator<
 
         if (inputStabilityCheck.shouldRun) {
           // make a second copy of the params, to check if we got the same results
-          const inputSelectorResultsCopy = collectInputSelectorResults(
+          const inputSelectorResultsCopy = await collectInputSelectorResults(
             dependencies,
             arguments
           )

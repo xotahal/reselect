@@ -180,7 +180,7 @@ export function weakMapMemoize<Func extends AnyFunction>(
 
   let resultsCount = 0
 
-  function memoized() {
+  async function memoized() {
     let cacheNode = fnNode
     const { length } = arguments
     for (let i = 0, l = length; i < l; i++) {
@@ -225,7 +225,7 @@ export function weakMapMemoize<Func extends AnyFunction>(
       result = cacheNode.v
     } else {
       // Allow errors to propagate
-      result = func.apply(null, arguments as unknown as any[])
+      result = await func.apply(null, arguments as unknown as any[])
       resultsCount++
     }
 
